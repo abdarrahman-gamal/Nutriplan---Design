@@ -1,118 +1,117 @@
-/**
- * NutriPlan - Main Entry Point
- * 
- * This is the main entry point for the application.
- * Import your modules and initialize the app here.
- */
+
+import { getData } from './get-data/get-data.js'
+import { fillProductDetailModal, fillLogMealModal, fillAreaOneAtime, fillCategoryOneAtime, fillMealsOneAtime, renderAreas, renderCategories, renderMeals, renderOneMeal, renderProducts, fillProductsOneAtime } from './render-data/render-data.js'
+
+async function loadAndRenderArea() {
+    const areas = await getData.areas("https://nutriplan-api.vercel.app/api/meals/areas")
+    renderAreas(fillAreaOneAtime, templateArea, areaGrid, areas)
+}
+
+async function loadAndRenderCategories() {
+    const categories = await getData.categories("https://nutriplan-api.vercel.app/api/meals/categories")
+    renderCategories(fillCategoryOneAtime, templateCategories, categoriesGrid, categories)
+    FontAwesome.dom.i2svg({
+        node: categoriesGrid
+    })
+}
+
+async function loadAndRenderRandomMeals() {
+    const meals = await getData.mealsSearchOrFilterOrRandom("https://nutriplan-api.vercel.app/api/meals/random?count=25")
+    renderMeals(fillMealsOneAtime, templateRecipes, recipesGrid, meals, recipesCount)
+}
+
+async function loadAndRenderMeals(URL) {
+    const meals = await getData.mealsSearchOrFilterOrRandom(URL)
+    renderMeals(fillMealsOneAtime, templateRecipes, recipesGrid, meals, recipesCount)
+}
+
+async function loadAndRenderOneMeal(URL) {
+    const mealData = await getData.oneMeal(URL)
+    renderOneMeal(mealData)
+    console.log(mealData)
+    return mealData
+}
+
+async function loadAndRenderProducts(URL) {
+    const productsData = await getData.products(URL)
+    renderProducts(fillProductsOneAtime, templateProducts, productsGrid, productsData)
+
+}
 
 
-// تصحيح التنقل 
-//  عندما اضغط على الوجبة يجب ان يظهر 
-// id="meal-details" 
-// ويختفى الباقي
-// إدارة حالة الشريط العلوي ليتغير محتواه مع كل انقال
-
-// هعمل كائن بياخد الحاجة الي دوست عليها اودالة واول ما ياخدها يعدل ما يجب
-// الحجات الي ممكن ادوس عليها 
-//  الشريط الجانبي - ظل الشريط الجانبي للعودة - التبويبات الجانبية فى الشريط الجانبي - كارت الطعام - اضافة الطعام - تغيير شكل العرض
-// 
-// نبدأ بتغيير العرض 
-//  grid-view-btn, list-view-btn 
-//  اولا حالة الزر 
-// 
-
-//  الأشكال والخلفيات والأيقونات 
-
-const categoryStyles = {
-    Beef: {
-        icon: "fa-cow",
-        card: "bg-gradient-to-br from-red-50 to-rose-50 border-red-200 hover:border-red-400",
-        iconBg: "bg-gradient-to-br from-red-400 to-rose-500"
-    },
-
-    Chicken: {
-        icon: "fa-drumstick-bite",
-        card: "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-400",
-        iconBg: "bg-gradient-to-br from-amber-400 to-orange-500"
-    },
-
-    Dessert: {
-        icon: "fa-cake-candles",
-        card: "bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:border-pink-400",
-        iconBg: "bg-gradient-to-br from-pink-400 to-rose-500"
-    },
-
-    Lamb: {
-        icon: "fa-bone",
-        card: "bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 hover:border-orange-400",
-        iconBg: "bg-gradient-to-br from-orange-400 to-amber-500"
-    },
-
-    Miscellaneous: {
-        icon: "fa-bowl-rice",
-        card: "bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200 hover:border-slate-400",
-        iconBg: "bg-gradient-to-br from-slate-400 to-gray-500"
-    },
-
-    Pasta: {
-        icon: "fa-bowl-food",
-        card: "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 hover:border-yellow-400",
-        iconBg: "bg-gradient-to-br from-yellow-400 to-amber-500"
-    },
-
-    Pork: {
-        icon: "fa-bacon",
-        card: "bg-gradient-to-br from-rose-50 to-red-50 border-rose-200 hover:border-rose-400",
-        iconBg: "bg-gradient-to-br from-rose-400 to-red-500"
-    },
-
-    Seafood: {
-        icon: "fa-fish",
-        card: "bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200 hover:border-cyan-400",
-        iconBg: "bg-gradient-to-br from-cyan-400 to-blue-500"
-    },
-
-    Side: {
-        icon: "fa-plate-wheat",
-        card: "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:border-green-400",
-        iconBg: "bg-gradient-to-br from-green-400 to-emerald-500"
-    },
-
-    Starter: {
-        icon: "fa-utensils",
-        card: "bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 hover:border-teal-400",
-        iconBg: "bg-gradient-to-br from-teal-400 to-cyan-500"
-    },
-
-    Vegan: {
-        icon: "fa-leaf",
-        card: "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:border-emerald-400",
-        iconBg: "bg-gradient-to-br from-emerald-400 to-green-500"
-    },
-
-    Vegetarian: {
-        icon: "fa-seedling",
-        card: "bg-gradient-to-br from-lime-50 to-green-50 border-lime-200 hover:border-lime-400",
-        iconBg: "bg-gradient-to-br from-lime-400 to-green-500"
-    },
-
-    Breakfast: {
-        icon: "fa-egg",
-        card: "bg-gradient-to-br from-sky-50 to-indigo-50 border-sky-200 hover:border-sky-400",
-        iconBg: "bg-gradient-to-br from-sky-400 to-indigo-500"
-    },
-
-    Goat: {
-        icon: "fa-horse",
-        card: "bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 hover:border-violet-400",
-        iconBg: "bg-gradient-to-br from-violet-400 to-purple-500"
+class viewSwitcher {
+    constructor(hideParts = [], showParts = []) {
+        this.hideParts = hideParts
+        this.showParts = showParts
     }
-};
+    apply() {
+        for (const part of this.hideParts) {
+            document.querySelector(`${part}`).classList.toggle("hidden", true)
+        }
+        for (const part of this.showParts) {
+            document.querySelector(`${part}`).classList.toggle("hidden", false)
+        }
+    }
+}
+const mealsAndRecipes = new viewSwitcher(["#meal-details", "#products-section", "#foodlog-section"], ["#search-filters-section", "#meal-categories-section", "#all-recipes-section"])
+const productScanner = new viewSwitcher(["#meal-details", "#search-filters-section", "#meal-categories-section", "#all-recipes-section", "#foodlog-section"], ["#products-section"])
+const foodLog = new viewSwitcher(["#meal-details", "#products-section", "#search-filters-section", "#meal-categories-section", "#all-recipes-section"], ["#foodlog-section"])
+const mealDetails = new viewSwitcher(["#search-filters-section", "#meal-categories-section", "#all-recipes-section", "#products-section", "#foodlog-section"], ["#meal-details"])
 
+const recipesCount = document.querySelector("#recipes-count")
+const templateRecipes = document.querySelector("#recipes-grid").firstElementChild
+const templateCategories = document.querySelector("#categories-grid").firstElementChild
+const templateArea = document.querySelector("#area-grid").firstElementChild
+const recipesGrid = document.querySelector("#recipes-grid")
+const categoriesGrid = document.querySelector("#categories-grid")
+const areaGrid = document.querySelector("#area-grid")
+const searchInput = document.querySelector("#search-input")
+const sideBar = document.querySelector("#sidebar")
+const sideBarOverlay = document.querySelector("#sidebar-overlay")
+const appLoadingOverlay = document.querySelector("#app-loading-overlay")
+const titleParagraph = document.querySelector("#title-paragraph")
+const title = document.querySelector("#title")
+const templateProducts = document.querySelector("#products-grid").firstElementChild
+const productsGrid = document.querySelector("#products-grid")
+const productSearch = document.querySelector("#product-search-input")
+const productBarcode = document.querySelector("#barcode-input")
+const mealServingsCount = document.querySelector("#meal-servings")
+const logMealModal = document.querySelector("#log-meal-modal")
+const productDetailModal = document.querySelector("#product-detail-modal")
+let tempProdOrMealObj = {}
+let tempDay = {}
+let thisModalData = {}
 
+const Transitions = {
+    "#meal-details": mealDetails,
+    "#mealsAndRecipes": mealsAndRecipes,
+    "#productScanner": productScanner,
+    "#foodLog": foodLog
+}
 
+function titleAndParagraph() {
+    console.log(window.location.hash)
+    switch (window.location.hash) {
+        case "#mealsAndRecipes":
+            title.textContent = "Meals & Recipes"
+            titleParagraph.textContent = "Discover delicious and nutritious recipes tailored for you"
+            break;
+        case "#productScanner":
+            title.textContent = "Product Scanner"
+            titleParagraph.textContent = "Search packaged foods by name or barcode"
+            break;
+        case "#foodLog":
+            title.textContent = "Food Log"
+            titleParagraph.textContent = "Track your daily nutrition and food intake"
+            break;
+        case "#mealDetails":
+            title.textContent = "Recipe Details"
+            titleParagraph.textContent = "View full recipe information and nutrition facts"
+            break;
+    }
+}
 
-class GlobalStateAbearance {
+class tabsAbearance {
     constructor() {
         this.siblingsActiveClasses = []
         this.siblingsUnactiveClasses = []
@@ -167,25 +166,27 @@ class GlobalStateAbearance {
         this.applyState()
     }
 }
-
-
 // search-filters-section
-const searchFiltersSection = new GlobalStateAbearance()
+const searchFiltersSection = new tabsAbearance()
 searchFiltersSection.siblingsActiveClasses = ["bg-emerald-600", "text-white", "hover:bg-emerald-700"]
 searchFiltersSection.siblingsUnactiveClasses = ["bg-gray-100", "text-gray-700", "hover:bg-gray-200"]
 // sidebar
-const sidebar = new GlobalStateAbearance()
+const sidebar = new tabsAbearance()
 sidebar.siblingsActiveClasses = ["bg-emerald-50", "text-emerald-700"]
 sidebar.siblingsUnactiveClasses = ["text-gray-600", "hover:bg-gray-50"]
 // view-toggle
-const viewToggle = new GlobalStateAbearance()
+const viewToggle = new tabsAbearance()
 viewToggle.siblingsActiveClasses = ["bg-white", "shadow-sm"]
 viewToggle.siblingsUnactiveClasses = []
 
+function setNavURL(eleHasPathName) {
+    const pathName = eleHasPathName.getAttribute("href")
+    history.pushState(null, null, `${pathName}`)
+    return pathName
+}
 
-let renderCards
 document.body.addEventListener("click", (e) => {
-    if (e.target.closest("#sidebar")) {
+    if (e.target.closest("#sidebar a")) {
         const ele = e.target.closest("a")
         if (ele === null) {
             return
@@ -193,6 +194,7 @@ document.body.addEventListener("click", (e) => {
         sidebar.setClickedElement(ele)
         Transitions[setNavURL(ele)].apply()
         sidebar.activeOnlyClicked()
+        titleAndParagraph()
     }
     if (e.target.closest("#search-filters-section")) {
         searchFiltersSection.setClickedElement(e.target.closest("button"))
@@ -204,215 +206,156 @@ document.body.addEventListener("click", (e) => {
     }
     if (e.target.closest("#recipes-grid")) {
         if (e.target.closest("[data-meal-id]")) {
+            appLoadingOverlay.classList.toggle("loading", false)
             const thisId = e.target.closest("[data-meal-id]").dataset.mealId
-            renderMeal(`https://nutriplan-api.vercel.app/api/meals/${thisId}`)
+            loadAndRenderOneMeal(`https://nutriplan-api.vercel.app/api/meals/${thisId}`).then(
+                (data) => {
+                    console.log(data)
+                    thisModalData = structuredClone(getData.modalData(data))
+                    fillLogMealModal(thisModalData, logMealModal, mealServingsCount)
+                    console.log(thisModalData)
+                    appLoadingOverlay.classList.toggle("loading", true)
+                }
+            ).catch(error => {
+                console.error("Initialization failed:", error);
+            })
             mealDetails.apply()
-            setNavURL(document.querySelector("#meal-details"))
+            setNavURL(e.target.closest("[data-meal-id]"))
+            console.log()
+            titleAndParagraph()
         }
     }
     if (e.target.closest("#back-to-meals-btn")) {
         setNavURL(document.querySelector("[href = '#mealsAndRecipes']"))
         mealsAndRecipes.apply()
+        titleAndParagraph()
     }
-    if (e.target.closest("[data-field='card']")) {
-        const ele = e.target.closest("[data-field='card']")
-        render(`https://nutriplan-api.vercel.app/api/meals/filter?category=${ele.dataset.category}&page=1&limit=25`, recipesGrid, templateRecipes)
+    if (e.target.closest("[data-field='categoryCard']")) {
+        const ele = e.target.closest("[data-field='categoryCard']")
+        loadAndRenderMeals(`https://nutriplan-api.vercel.app/api/meals/filter?category=${ele.dataset.category}&page=1&limit=25`)
+
     }
     if (e.target.closest("#area-grid")) {
         const ele = e.target.closest("button")
         if (ele.dataset.field == "area") {
-            renderCards = render(`https://nutriplan-api.vercel.app/api/meals/random?count=25`, recipesGrid, templateRecipes)
+            loadAndRenderRandomMeals()
         }
         else {
-            render(`https://nutriplan-api.vercel.app/api/meals/filter?area=${ele.dataset.field}&page=1&limit=25`, recipesGrid, templateRecipes)
+            loadAndRenderMeals(`https://nutriplan-api.vercel.app/api/meals/filter?area=${ele.dataset.field}&page=1&limit=25`)
         }
+    }
+    if (e.target.closest("#header-menu-btn")) {
+        sideBar.classList.toggle("-translate-x-full", false)
+        sideBarOverlay.classList.toggle("hidden", false)
+    }
+    if (e.target.closest("#sidebar-close-btn")) {
+        sideBar.classList.toggle("-translate-x-full", true)
+        sideBarOverlay.classList.toggle("hidden", true)
+    }
+    if (e.target.closest("#sidebar-overlay")) {
+        sideBar.classList.toggle("-translate-x-full", true)
+        sideBarOverlay.classList.toggle("hidden", true)
+    }
+    if (e.target.closest(".product-category-btn")) {
+        const nutri = e.target.closest(".product-category-btn").dataset.nutri
+        loadAndRenderProducts(`https://nutriplan-api.vercel.app/api/products/category/${nutri}`)
+        console.log(`https://nutriplan-api.vercel.app/api/products/category/${nutri}`)
+    }
+    if (e.target.closest("#sidebar-overlay")) {
+        sideBar.classList.toggle("-translate-x-full", true)
+        sideBarOverlay.classList.toggle("hidden", true)
+    }
+    if (e.target.closest("#decrease-servings")) {
+        mealServingsCount.value = +mealServingsCount.value > 0.5 ? +mealServingsCount.value - 0.5 : mealServingsCount.value
+        fillLogMealModal(thisModalData, logMealModal, mealServingsCount)
+    }
+    if (e.target.closest("#increase-servings")) {
+        mealServingsCount.value = +mealServingsCount.value < 10 ? +mealServingsCount.value + 0.5 : mealServingsCount.value
+        fillLogMealModal(thisModalData, logMealModal, mealServingsCount)
+    }
+    if (e.target.closest("#cancel-log-meal")) {
+        logMealModal.classList.toggle("flex", false)
+        logMealModal.classList.toggle("hidden", true)
+    }
+    if (e.target.closest("#log-meal-btn")) {
+        logMealModal.classList.toggle("hidden", false)
+        logMealModal.classList.toggle("flex", true)
+    }
+    if (e.target.closest(".product-card")) {
+        productDetailModal.classList.toggle("hidden", false)
+        productDetailModal.classList.toggle("flex", true)
+        const ele = e.target.closest(".product-card")
+        const barcode = ele.dataset.barcode
+        getData.products(`https://nutriplan-api.vercel.app/api/products/barcode/${barcode}`).then((data) => {
+            fillProductDetailModal(data, productDetailModal)
+
+        })
+    }
+    if (e.target.closest("button.close-product-modal")) {
+        productDetailModal.classList.toggle("hidden", true)
+        productDetailModal.classList.toggle("flex", false)
     }
 })
 
 
-class PageState {
-    constructor(hideParts = [], showParts = []) {
-        this.hideParts = hideParts
-        this.showParts = showParts
-    }
-    apply() {
-        for (const part of this.hideParts) {
-            document.querySelector(`${part}`).classList.toggle("hidden", true)
-        }
-        for (const part of this.showParts) {
-            document.querySelector(`${part}`).classList.toggle("hidden", false)
-        }
-    }
-}
-
-function setNavURL(eleHasPathName) {
-    const pathName = eleHasPathName.getAttribute("href")
-    if (pathName === null) {
-        let id
-        const section = document.querySelector("#meal-details")
-        const options = {
-            root: document.querySelector("#main-content"),
-            rootMargin: "0px",
-            threshold: 0.6
-        };
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    id = entry.target.getAttribute("id")
-                    history.pushState(null, null, `#${id}`)
-                }
-            })
-        }, options)
-        observer.observe(section)
-        return id
-    }
-    history.pushState(null, null, `${pathName}`)
-    return pathName
-}
-
-const mealsAndRecipes = new PageState(["#meal-details", "#products-section", "#foodlog-section"], ["#search-filters-section", "#meal-categories-section", "#all-recipes-section"])
-const productScanner = new PageState(["#meal-details", "#search-filters-section", "#meal-categories-section", "#all-recipes-section", "#foodlog-section"], ["#products-section"])
-const foodLog = new PageState(["#meal-details", "#products-section", "#search-filters-section", "#meal-categories-section", "#all-recipes-section"], ["#foodlog-section"])
-const mealDetails = new PageState(["#search-filters-section", "#meal-categories-section", "#all-recipes-section", "#products-section", "#foodlog-section"], ["#meal-details"])
-
-
-const Transitions = {
-    "#meal-details": mealDetails,
-    "#mealsAndRecipes": mealsAndRecipes,
-    "#productScanner": productScanner,
-    "#foodLog": foodLog
-}
-
-async function getData(URL) {
-    let response = await fetch(URL)
-    response = await response.json()
-    return response.results ?? response.result
-}
-
-
-async function render(URL, area, template) {
-    const data = await getData(URL)
-    recipesCount.textContent = `Showing ${data.length >= 25 ? "25" : data.length} recipes`
-    const fragment = document.createDocumentFragment()
-    for (const row of data) {
-        fragment.appendChild(fill(template.cloneNode(true), row))
-    }
-    template.dataset.field === "area" || area.replaceChildren()
-    area.appendChild(fragment)
-
-}
-
-const recipesCount = document.querySelector("#recipes-count")
-
-const templateRecipes = document.querySelector("#recipes-grid").firstElementChild
-const templateCategories = document.querySelector("#categories-grid").firstElementChild
-const templateArea = document.querySelector("#area-grid").firstElementChild
-
-
-const recipesGrid = document.querySelector("#recipes-grid")
-const categoriesGrid = document.querySelector("#categories-grid")
-const areaGrid = document.querySelector("#area-grid")
-
-
-const searchInput = document.querySelector("#search-input")
-
-const appLoadingOverlay = document.querySelector("#app-loading-overlay")
-
 document.addEventListener("DOMContentLoaded", function () {
-    // render(`https://nutriplan-api.vercel.app/api/meals/random?count=25`, recipesGrid, templateRecipes)
+    appLoadingOverlay.classList.toggle("loading", false)
+    // loadAndRenderRandomMeals()
     mealsAndRecipes.apply()
     setNavURL(document.querySelector("[href = '#mealsAndRecipes']"))
-    const renderCat = render("https://nutriplan-api.vercel.app/api/meals/categories", categoriesGrid, templateCategories)
-    const renderArea = render("https://nutriplan-api.vercel.app/api/meals/areas", areaGrid, templateArea)
-    .then(
-        () => {
-            const ele = document.querySelector("[data-field='area']")
-            ele.click()
-        })
-        // Promise.all([renderCat, renderArea, renderCards]).then(
-        //     ()=>{
-        //         appLoadingOverlay.classList.toggle("loading", true)
-        //     }
-        // )
+    Promise.all([
+        loadAndRenderCategories(),
+        loadAndRenderArea(),
+        loadAndRenderRandomMeals()
+            .then(
+                () => {
+                    const ele = document.querySelector("[data-field='area']")
+                    searchFiltersSection.setClickedElement(ele)
+                    searchFiltersSection.activeOnlyClicked()
+                })
+    ]).then(() => {
+        appLoadingOverlay.classList.toggle("loading", true)
+    }).catch(error => {
+        console.error("Initialization failed:", error);
+    })
 
 })
 searchInput.addEventListener("input", function () {
     const term = this.value
-    render(`https://nutriplan-api.vercel.app/api/meals/search?q=${term}&page=1&limit=25`, recipesGrid, templateRecipes)
+    loadAndRenderMeals(`https://nutriplan-api.vercel.app/api/meals/search?q=${term}&page=1&limit=25`)
 })
-function fill(element, data) {
-    let eleFields
-    if (element.dataset.field === "area") {
-        element.dataset.field = data.name
-        element.textContent = data.name
-        return element
-    }
-    if (element.dataset.field === "card") {
-        element.dataset.category = data.name
-        const style = categoryStyles[element.dataset.category]
-        element.classList.add(...style[element.dataset.field].split(" "))
-        eleFields = element.querySelectorAll("[data-field]")
-        for (const eleField of eleFields) {
-            switch (eleField.dataset.field) {
-                case "text":
-                    element.querySelector("[data-field='text']").textContent = data.name
-                    break
-                case "icon":
-                    eleField.classList.add("fa-solid", ...style.icon.split(" "))
-                    break
-                default:
-                    eleField.classList.add(...style[eleField.dataset.field].split(" "))
-            }
-        }
-        FontAwesome.dom.i2svg({
-            node: element
-        })
-        return element
-    }
-    eleFields = element.querySelectorAll("[data-field]")
-    element.dataset.mealId = data.id
-    for (const eleField of eleFields) {
-        switch (eleField.dataset.field) {
-            case "thumbnail":
-                eleField.src = data[eleField.dataset.field]
-                break
-            default:
-                eleField.lastChild.textContent = data[eleField.dataset.field] || "N/A"
-        }
-    }
-    return element
-}
-
-async function renderMeal(URL) {
-    const data = await getData(URL)
-    const {
-        ingredients,
-        instructions,
-    } = data
-    const tag = data.tags[0] || "N/A"
-    const dataFields = document.querySelector("#meal-details").querySelectorAll("[data-field]")
-    const img = document.querySelector("#meal-details img")
-    const iframe = document.querySelector("#meal-details iframe")
-    img.src = data.thumbnail
-    iframe.src = data.youtube
-
-    for (const field of dataFields) {
-        switch (field.dataset.field) {
-            case "ingredients":
-                // ingredientsRender(ingredients)
-                break
-            case "instructions":
-                // instructionsReander(instructions)
-                break
-            case "tag":
-                field.textContent = tag
-                break
-            default:
-                field.textContent = data[field.dataset.field] || "N/A"
-        }
-    }
-}
-
-getData("https://nutriplan-api.vercel.app/api/meals/52772").then((data) => {
-    console.log("why this not  working??", data)
+productSearch.addEventListener("input", function () {
+    const term = this.value
+    loadAndRenderProducts(`https://nutriplan-api.vercel.app/api/products/search?q=${term}&page=1&limit=24`)
 })
+productBarcode.addEventListener("input", function () {
+    const term = this.value
+    loadAndRenderProducts(`https://nutriplan-api.vercel.app/api/products/barcode/${term}`)
+})
+
+loadAndRenderProducts("https://nutriplan-api.vercel.app/api/products/search?q=nutella&page=1&limit=24")
+
+
+
+// obj = {
+//     name: `name`,
+//     secondname: brand || `${count} serving`,
+//     type: 'Recipe' || 'Product',
+//     timeOfAdd: "HH:MM (AM|pm",
+//     colories: 1270,
+//     protin: "111g",
+//     carb: "111g",
+//     fat: "111g"
+// }
+
+// tempDay = {
+//     daytext:"sat",
+//     daynum:1,
+//     calories: 3232, sum of all day cal
+//     items: 4 aray length
+// }
+
+// metadata= {
+//     date,
+//     time
+// }
